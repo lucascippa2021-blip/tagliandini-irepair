@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Generatore Tagliandini iPhone</title>
+
+<style>
+  :root{
+    /* A4 */
+    --a4-w: 210mm;
+    --a4-h: 297mm;
+
+    /* POSIZIONE COLONNA (presa dal tuo PDF) */
+    --col-left: 41.28mm;   /* x=117pt */
+    --col-top: 40.39mm;    /* y=114.5pt */
+
+    /* DIMENSIONI COLONNA e TAG (prese dal tuo PDF) */
+    --col-w: 87.49mm;      /* 248pt */
+    --tag-h: 64.20mm;      /* ~182pt */
+
+    /* Font come nel PDF */
+    --font: Impact, Haettenschweiler, "Arial Black", sans-serif;
+
+    /* UI */
+    --bg:#0b1220;
+    --text:#e5e7eb;
+    --muted:#94a3b8;
+    --border: rgba(148,163,184,.22);
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background: radial-gradient(1200px 700px at 25% 10%, #14224b 0%, var(--bg) 60%);
+    color: var(--text);
+  }
+
+  .app{
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 20px;
+    display:grid;
+    grid-template-columns: 380px 1fr;
+    gap:16px;
+  }
+
+  .panel{
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:16px;
+    box-shadow: 0 16px 36px rgba(0,0,0,.35);
+    position: sticky;
+    top:16px;
+    height: fit-content;
+  }
+  .panel h1{ margin:0 0 6px 0; font-size:18px; }
+  .panel p{ margin:0 0 14px 0; font-size:13px; color: var(--muted); line-height:1.35; }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+  label{ display:block; font-size:12px; color:var(--muted); margin:0 0 6px 0; }
+
+  select, input{
+    width:100%;
+    padding:10px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background: rgba(2,6,23,.35);
+    color: var(--text);
+    outline:none;
+  }
+
+  .btns{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+    margin-top:12px;
+  }
+  button{
+    border:none;
+    border-radius:14px;
+    padding:11px 12px;
+    cursor:pointer;
+    font-weight:800;
+    letter-spacing:.2px;
+  }
+  .primary{ background: linear-gradient(180deg, #22c55e, #16a34a); color:#052e16; }
+  .outline{ background: transparent; color: var(--text); border:1px solid var(--border); }
+  .danger{ background: rgba(239,68,68,.16); color:#fecaca; border:1px solid rgba(239,68,68,.35); }
+
+  .stage{
+    background: rgba(255,255,255,.04);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:16px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.25);
+  }
+
+  .paperPreview{
+    width: min(680px, 100%);
+    aspect-ratio: 210 / 297;
+    background:#fff;
+    border-radius:14px;
+    box-shadow: 0 16px 34px rgba(0,0,0,.35);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ====== COLONNA (come nel PDF) ====== */
+  .stack{
+    position:absolute;
+    left: var(--col-left);
+    top: var(--col-top);
+    width: var(--col-w);
+    border: 1px solid #000;
+    background:#fff;
+  }
+
+  /* ====== TAG (come nel PDF) ====== */
+  .tag{
+    position: relative;
+    width: 100%;
+    height: var(--tag-h);
+    border-top: 1px solid #000;
+    background:#fff;
+    overflow:hidden;
+    font-family: var(--font);
+    color:#000;
+  }
+  .tag:first-child{ border-top:none; }
+
+  /* Testi: posizioni/size dal PDF (in mm / pt) */
+  .t-offerta{
+    position:absolute;
+    top: 2.245mm;     /* (120.8636 - 114.5)pt */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28pt;
+    font-weight: 400;
+    letter-spacing: 0.2pt;
+    white-space: nowrap;
+  }
+
+  .t-model{
+    position:absolute;
+    top: 15.824mm;    /* (159.3558 - 114.5)pt */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 31pt;
+    line-height: 1.02;
+    text-align:center;
+    width: calc(var(--col-w) - 28mm); /* lascia spazio ai loghi */
+    white-space: normal;
+  }
+
+  .t-state{
+    position:absolute;
+    top: 31.164mm;    /* (202.8390 - 114.5)pt */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12pt;
+    letter-spacing: 0.8pt;
+    white-space: nowrap;
+  }
+
+  .t-memory{
+    position:absolute;
+    top: 37.102mm;    /* (219.6712 - 114.5)pt */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20pt;
+    white-space: nowrap;
+  }
+
+  .t-price{
+    position:absolute;
+    top: 46.999mm;    /* (247.7249 - 114.5)pt */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 31pt;
+    white-space: nowrap;
+  }
+
+  /* Loghi: posizioni/dimensioni dal PDF */
+  .logo-compass{
+    position:absolute;
+    left: 61.9125mm;   /* (292.5 - 117)pt */
+    top: 35.8679mm;    /* (216.1729 - 114.5)pt */
+    width: 23.0188mm;  /* (357.75-292.5)pt */
+    height: 6.35mm;    /* (234.17-216.17)pt */
+    object-fit: contain;
+  }
+
+  .klarna-wrap{
+    position:absolute;
+    left: 63.5mm;       /* (297 - 117)pt */
+    top: 48.7580mm;     /* (252.7115 - 114.5)pt */
+    width: 19.8438mm;   /* (353.25-297)pt */
+    height: 8.4667mm;   /* (276.71-252.71)pt */
+    background: #f7a8c7;
+    border-radius: 999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  .logo-klarna{
+    width: 92%;
+    height: 92%;
+    object-fit: contain;
+  }
+
+  /* ====== STAMPA: SOLO A4 CON LA COLONNA NEL PUNTO ESATTO ====== */
+  @media print{
+    @page { size: A4; margin: 0; } /* nel PDF era posizionato assoluto su pagina */
+    body{ background:#fff !important; }
+    .panel{ display:none !important; }
+    .app{ display:block; padding:0; max-width:none; }
+    .stage{ border:none; box-shadow:none; padding:0; background:transparent; }
+
+    .paperPreview{
+      width: var(--a4-w);
+      height: var(--a4-h);
+      aspect-ratio: auto;
+      border-radius:0;
+      box-shadow:none;
+    }
+  }
+
+  @media (max-width: 980px){
+    .app{ grid-template-columns: 1fr; }
+    .panel{ position:relative; top:auto; }
+    .paperPreview{ width:100%; }
+  }
+</style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="panel">
+      <h1>Generatore Tagliandini iPhone</h1>
+      <p>Questa versione replica al millimetro il layout del PDF (font/posizioni/loghi).<br>
+      Metti <b>compass.png</b> e <b>klarna.png</b nella stessa cartella.</p>
+
+      <div class="grid">
+        <div>
+          <label for="model">Modello</label>
+          <select id="model"></select>
+        </div>
+
+        <div>
+          <label for="memory">Memoria</label>
+          <select id="memory">
+            <option value="64GB">64GB</option>
+            <option value="128GB">128GB</option>
+            <option value="256GB">256GB</option>
+            <option value="512GB">512GB</option>
+            <option value="1TB">1TB</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="state">Stato</label>
+          <select id="state">
+            <option value="NUOVO">NUOVO</option>
+            <option value="USATO">USATO</option>
+            <option value="RICONDIZIONATO">RICONDIZIONATO</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="price">Prezzo (€)</label>
+          <input id="price" type="number" min="0" step="0.01" placeholder="Es: 149.99">
+        </div>
+      </div>
+
+      <div class="btns">
+        <button class="primary" id="add">Aggiungi</button>
+        <button class="outline" id="print">Stampa</button>
+        <button class="danger" id="clear">Svuota</button>
+      </div>
+    </aside>
+
+    <main class="stage">
+      <div class="paperPreview">
+        <div class="stack" id="stack"></div>
+      </div>
+    </main>
+  </div>
+
+<script>
+  const COMPASS_SRC = "./compass.png";
+  const KLARNA_SRC  = "./klarna.png";
+
+  const IPHONES_2019_PLUS = [
+    "iPhone 11","iPhone 11 Pro","iPhone 11 Pro Max",
+    "iPhone SE (2ª gen)",
+    "iPhone 12 mini","iPhone 12","iPhone 12 Pro","iPhone 12 Pro Max",
+    "iPhone 13 mini","iPhone 13","iPhone 13 Pro","iPhone 13 Pro Max",
+    "iPhone SE (3ª gen)",
+    "iPhone 14","iPhone 14 Plus","iPhone 14 Pro","iPhone 14 Pro Max",
+    "iPhone 15","iPhone 15 Plus","iPhone 15 Pro","iPhone 15 Pro Max",
+    "iPhone 16","iPhone 16e","iPhone 16 Plus","iPhone 16 Pro","iPhone 16 Pro Max",
+    "iPhone 17","iPhone 17 Air","iPhone 17 Pro","iPhone 17 Pro Max"
+  ];
+
+  const $ = (id) => document.getElementById(id);
+
+  function euro(v){
+    const n = Number(v);
+    if (!isFinite(n)) return "";
+    return n.toFixed(2).replace(".", ",");
+  }
+
+  function initModels(){
+    const sel = $("model");
+    sel.innerHTML = "";
+    IPHONES_2019_PLUS.forEach(m=>{
+      const o=document.createElement("option");
+      o.value=m; o.textContent=m;
+      sel.appendChild(o);
+    });
+  }
+
+  function makeTag({model, memory, state, price}){
+    const tag = document.createElement("div");
+    tag.className = "tag";
+
+    tag.innerHTML = `
+      <div class="t-offerta">OFFERTA</div>
+      <div class="t-model">${model}</div>
+      <div class="t-state">${state}</div>
+      <div class="t-memory">${memory}</div>
+      <div class="t-price">${euro(price)}</div>
+
+      <img class="logo-compass" src="${COMPASS_SRC}" alt="COMPASS">
+      <div class="klarna-wrap">
+        <img class="logo-klarna" src="${KLARNA_SRC}" alt="Klarna">
+      </div>
+    `;
+    return tag;
+  }
+
+  function addTag(){
+    const price = $("price").value;
+    if (price === "" || !isFinite(Number(price)) || Number(price) < 0){
+      alert("Inserisci un prezzo valido (es. 149.99).");
+      return;
+    }
+    const t = makeTag({
+      model: $("model").value,
+      memory: $("memory").value,
+      state: $("state").value,
+      price
+    });
+    $("stack").appendChild(t);
+  }
+
+  function clearAll(){
+    $("stack").innerHTML = "";
+  }
+
+  initModels();
+  $("add").addEventListener("click", addTag);
+  $("print").addEventListener("click", ()=> window.print());
+  $("clear").addEventListener("click", clearAll);
+</script>
+</body>
+</html>
