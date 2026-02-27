@@ -11,13 +11,13 @@
     --a4-w: 210mm;
     --a4-h: 297mm;
 
-    /* POSIZIONE COLONNA (presa dal tuo PDF) */
-    --col-left: 41.28mm;   /* x=117pt */
-    --col-top: 40.39mm;    /* y=114.5pt */
+    /* POSIZIONE COLONNA (come nel tuo PDF) */
+    --col-left: 41.28mm;
+    --col-top: 40.39mm;
 
-    /* DIMENSIONI COLONNA e TAG (prese dal tuo PDF) */
-    --col-w: 87.49mm;      /* 248pt */
-    --tag-h: 64.20mm;      /* ~182pt */
+    /* DIMENSIONI COLONNA e TAG (come nel tuo PDF) */
+    --col-w: 87.49mm;
+    --tag-h: 64.20mm;
 
     /* Font come nel PDF */
     --font: Impact, Haettenschweiler, "Arial Black", sans-serif;
@@ -136,10 +136,10 @@
   }
   .tag:first-child{ border-top:none; }
 
-  /* Testi: posizioni/size dal PDF (in mm / pt) */
+  /* Testi: posizioni/size dal PDF */
   .t-offerta{
     position:absolute;
-    top: 2.245mm;     /* (120.8636 - 114.5)pt */
+    top: 2.245mm;
     left: 50%;
     transform: translateX(-50%);
     font-size: 28pt;
@@ -150,10 +150,10 @@
 
   .t-model{
     position:absolute;
-    top: 15.824mm;    /* (159.3558 - 114.5)pt */
+    top: 15.824mm;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 31pt;
+    font-size: 31pt; /* base, poi può ridursi via JS */
     line-height: 1.02;
     text-align:center;
     width: calc(var(--col-w) - 28mm); /* lascia spazio ai loghi */
@@ -162,7 +162,7 @@
 
   .t-state{
     position:absolute;
-    top: 31.164mm;    /* (202.8390 - 114.5)pt */
+    top: 31.164mm;
     left: 50%;
     transform: translateX(-50%);
     font-size: 12pt;
@@ -172,7 +172,7 @@
 
   .t-memory{
     position:absolute;
-    top: 37.102mm;    /* (219.6712 - 114.5)pt */
+    top: 37.102mm;
     left: 50%;
     transform: translateX(-50%);
     font-size: 20pt;
@@ -181,7 +181,7 @@
 
   .t-price{
     position:absolute;
-    top: 46.999mm;    /* (247.7249 - 114.5)pt */
+    top: 46.999mm;
     left: 50%;
     transform: translateX(-50%);
     font-size: 31pt;
@@ -191,19 +191,19 @@
   /* Loghi: posizioni/dimensioni dal PDF */
   .logo-compass{
     position:absolute;
-    left: 61.9125mm;   /* (292.5 - 117)pt */
-    top: 35.8679mm;    /* (216.1729 - 114.5)pt */
-    width: 23.0188mm;  /* (357.75-292.5)pt */
-    height: 6.35mm;    /* (234.17-216.17)pt */
+    left: 61.9125mm;
+    top: 35.8679mm;
+    width: 23.0188mm;
+    height: 6.35mm;
     object-fit: contain;
   }
 
   .klarna-wrap{
     position:absolute;
-    left: 63.5mm;       /* (297 - 117)pt */
-    top: 48.7580mm;     /* (252.7115 - 114.5)pt */
-    width: 19.8438mm;   /* (353.25-297)pt */
-    height: 8.4667mm;   /* (276.71-252.71)pt */
+    left: 63.5mm;
+    top: 48.7580mm;
+    width: 19.8438mm;
+    height: 8.4667mm;
     background: #f7a8c7;
     border-radius: 999px;
     display:flex;
@@ -219,7 +219,7 @@
 
   /* ====== STAMPA: SOLO A4 CON LA COLONNA NEL PUNTO ESATTO ====== */
   @media print{
-    @page { size: A4; margin: 0; } /* nel PDF era posizionato assoluto su pagina */
+    @page { size: A4; margin: 0; }
     body{ background:#fff !important; }
     .panel{ display:none !important; }
     .app{ display:block; padding:0; max-width:none; }
@@ -232,6 +232,8 @@
       border-radius:0;
       box-shadow:none;
     }
+
+    .tag{ page-break-inside: avoid; }
   }
 
   @media (max-width: 980px){
@@ -246,8 +248,10 @@
   <div class="app">
     <aside class="panel">
       <h1>Generatore Tagliandini iPhone</h1>
-      <p>Questa versione replica al millimetro il layout del PDF (font/posizioni/loghi).<br>
-      Metti <b>compass.png</b> e <b>klarna.png</b nella stessa cartella.</p>
+      <p>
+        Layout 1:1 con il tuo PDF. Gestione automatica nomi lunghi (Pro Max / Plus / mini / SE).
+        <br>Nel repo devono esserci <b>compass.png</b> e <b>klarna.png</b>.
+      </p>
 
       <div class="grid">
         <div>
@@ -296,9 +300,11 @@
   </div>
 
 <script>
+  // Loghi (devono stare nel repo con questi nomi)
   const COMPASS_SRC = "./compass.png";
   const KLARNA_SRC  = "./klarna.png";
 
+  // Modelli dal 2019 in poi (inclusi 16e + serie 17 come richiesto)
   const IPHONES_2019_PLUS = [
     "iPhone 11","iPhone 11 Pro","iPhone 11 Pro Max",
     "iPhone SE (2ª gen)",
@@ -329,13 +335,46 @@
     });
   }
 
+  // 1) Va a capo “intelligente” sui nomi lunghi
+  function formatModelHTML(model){
+    // Ordine importante
+    return model
+      .replace(" Pro Max", "<br>Pro Max")
+      .replace(" Pro", "<br>Pro")
+      .replace(" Plus", "<br>Plus")
+      .replace(" mini", "<br>mini");
+  }
+
+  // 2) Se ancora sfora, riduce il font del modello SOLO per quel tagliandino
+  function autoFitModel(tagEl){
+    const modelEl = tagEl.querySelector(".t-model");
+    if (!modelEl) return;
+
+    // Step di font (base 31pt)
+    const sizes = ["31pt","29pt","27pt","25pt","24pt","23pt"];
+
+    // Soglia altezza “safe” (in px) per evitare che invada lo stato.
+    // È volutamente conservativa.
+    const MAX_HEIGHT_PX = 92;
+
+    for (let i = 0; i < sizes.length; i++){
+      modelEl.style.fontSize = sizes[i];
+
+      // forziamo layout
+      // (lettura proprietà => reflow)
+      void modelEl.offsetHeight;
+
+      if (modelEl.scrollHeight <= MAX_HEIGHT_PX) break;
+    }
+  }
+
   function makeTag({model, memory, state, price}){
     const tag = document.createElement("div");
     tag.className = "tag";
 
     tag.innerHTML = `
       <div class="t-offerta">OFFERTA</div>
-      <div class="t-model">${model}</div>
+      <div class="t-model">${formatModelHTML(model)}</div>
       <div class="t-state">${state}</div>
       <div class="t-memory">${memory}</div>
       <div class="t-price">${euro(price)}</div>
@@ -345,6 +384,8 @@
         <img class="logo-klarna" src="${KLARNA_SRC}" alt="Klarna">
       </div>
     `;
+
+    autoFitModel(tag);
     return tag;
   }
 
@@ -354,12 +395,14 @@
       alert("Inserisci un prezzo valido (es. 149.99).");
       return;
     }
+
     const t = makeTag({
       model: $("model").value,
       memory: $("memory").value,
       state: $("state").value,
       price
     });
+
     $("stack").appendChild(t);
   }
 
@@ -367,7 +410,10 @@
     $("stack").innerHTML = "";
   }
 
+  // Init
   initModels();
+
+  // Eventi
   $("add").addEventListener("click", addTag);
   $("print").addEventListener("click", ()=> window.print());
   $("clear").addEventListener("click", clearAll);
