@@ -11,11 +11,11 @@
     --a4-w: 210mm;
     --a4-h: 297mm;
 
-    /* POSIZIONE COLONNA (come nel tuo PDF) */
+    /* POSIZIONE COLONNA (come nel PDF) */
     --col-left: 41.28mm;
     --col-top: 40.39mm;
 
-    /* DIMENSIONI COLONNA e TAG (come nel tuo PDF) */
+    /* DIMENSIONI COLONNA e TAG (come nel PDF) */
     --col-w: 87.49mm;
     --tag-h: 64.20mm;
 
@@ -249,7 +249,7 @@
     <aside class="panel">
       <h1>Generatore Tagliandini iPhone</h1>
       <p>
-        Layout 1:1 con il tuo PDF. Gestione automatica nomi lunghi (Pro Max / Plus / mini / SE).
+        Layout 1:1 con il PDF + fix automatico nomi lunghi (Pro Max / Plus / mini).
         <br>Nel repo devono esserci <b>compass.png</b> e <b>klarna.png</b>.
       </p>
 
@@ -304,7 +304,7 @@
   const COMPASS_SRC = "./compass.png";
   const KLARNA_SRC  = "./klarna.png";
 
-  // Modelli dal 2019 in poi (inclusi 16e + serie 17 come richiesto)
+  // Modelli dal 2019 in poi (inclusi 16e + serie 17)
   const IPHONES_2019_PLUS = [
     "iPhone 11","iPhone 11 Pro","iPhone 11 Pro Max",
     "iPhone SE (2ª gen)",
@@ -335,36 +335,42 @@
     });
   }
 
-  // 1) Va a capo “intelligente” sui nomi lunghi
+  /* ========= FIX NOMI LUNGHI =========
+     - Pro Max: "iPhone 11 Pro Max" -> "iPhone 11 Pro<br>Max" (più compatto)
+     - Plus / mini: vanno a capo
+  */
   function formatModelHTML(model){
-    // Ordine importante
+    if (model.includes(" Pro Max")) {
+      return model.replace(" Pro Max", " Pro<br>Max");
+    }
     return model
-      .replace(" Pro Max", "<br>Pro Max")
-      .replace(" Pro", "<br>Pro")
       .replace(" Plus", "<br>Plus")
       .replace(" mini", "<br>mini");
   }
 
-  // 2) Se ancora sfora, riduce il font del modello SOLO per quel tagliandino
+  /* ========= AUTOFIT REALE =========
+     Riduce finché il modello NON invade lo stato (misurato con getBoundingClientRect).
+     Eseguito DOPO l'append => misure affidabili.
+  */
   function autoFitModel(tagEl){
     const modelEl = tagEl.querySelector(".t-model");
-    if (!modelEl) return;
+    const stateEl = tagEl.querySelector(".t-state");
+    if (!modelEl || !stateEl) return;
 
-    // Step di font (base 31pt)
-    const sizes = ["31pt","29pt","27pt","25pt","24pt","23pt"];
+    // Se su due righe, stringo leggermente line-height
+    modelEl.style.lineHeight = modelEl.innerHTML.includes("<br>") ? "0.95" : "1.02";
 
-    // Soglia altezza “safe” (in px) per evitare che invada lo stato.
-    // È volutamente conservativa.
-    const MAX_HEIGHT_PX = 92;
+    const sizes = ["31pt","29pt","27pt","25pt","24pt","23pt","22pt","21pt"];
 
-    for (let i = 0; i < sizes.length; i++){
-      modelEl.style.fontSize = sizes[i];
+    for (const s of sizes){
+      modelEl.style.fontSize = s;
+      void modelEl.offsetHeight; // force reflow
 
-      // forziamo layout
-      // (lettura proprietà => reflow)
-      void modelEl.offsetHeight;
+      const m = modelEl.getBoundingClientRect();
+      const st = stateEl.getBoundingClientRect();
 
-      if (modelEl.scrollHeight <= MAX_HEIGHT_PX) break;
+      // Respiro minimo (2px)
+      if (m.bottom <= st.top - 2) break;
     }
   }
 
@@ -385,7 +391,6 @@
       </div>
     `;
 
-    autoFitModel(tag);
     return tag;
   }
 
@@ -404,6 +409,9 @@
     });
 
     $("stack").appendChild(t);
+
+    // Fit DOPO append => garantito
+    autoFitModel(t);
   }
 
   function clearAll(){
