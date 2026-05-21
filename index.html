@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Generatore Tagliandini iPhone</title>
+<title>Generatore Tagliandini</title>
 
 <style>
   :root{
@@ -238,25 +238,25 @@
     white-space: nowrap;
   }
 
-  /* Quando OFFERTA viene rimossa, il blocco testuale viene riequilibrato */
+  /* Quando OFFERTA viene rimossa: impaginazione più armoniosa */
   .tag.no-offer .t-offerta{
     display:none;
   }
 
   .tag.no-offer .t-model{
-    top: 8.7mm;
+    top: 8.8mm;
   }
 
   .tag.no-offer .t-state{
-    top: 30.2mm;
+    top: 28.4mm;
   }
 
   .tag.no-offer .t-memory{
-    top: 37.2mm;
+    top: 36.2mm;
   }
 
   .tag.no-offer .t-price{
-    top: 47.0mm;
+    top: 46.6mm;
   }
 
   .logo-compass{
@@ -347,7 +347,7 @@
     <aside class="panel">
       <h1>Generatore Tagliandini</h1>
       <p>
-        Layout 1:1 con il PDF, con modelli manuali e opzione per mostrare/nascondere “OFFERTA”.
+        Layout 1:1 con il PDF, modelli manuali, grandezza Apple Watch e opzione OFFERTA.
         <br>Nel repository devono esserci <b>compass.png</b> e <b>klarna.png</b>.
       </p>
 
@@ -370,6 +370,21 @@
         </div>
 
         <div>
+          <label for="watchSize">Grandezza Apple Watch</label>
+          <select id="watchSize">
+            <option value="-">Nessuna</option>
+            <option value="38MM">38mm</option>
+            <option value="40MM">40mm</option>
+            <option value="41MM">41mm</option>
+            <option value="42MM">42mm</option>
+            <option value="44MM">44mm</option>
+            <option value="45MM">45mm</option>
+            <option value="46MM">46mm</option>
+            <option value="49MM">49mm</option>
+          </select>
+        </div>
+
+        <div>
           <label for="state">Stato</label>
           <select id="state">
             <option value="NUOVO">NUOVO</option>
@@ -387,7 +402,7 @@
           </select>
         </div>
 
-        <div class="full">
+        <div>
           <label for="price">Prezzo (€)</label>
           <input id="price" type="number" min="0" step="0.01" placeholder="Es: 149.99">
         </div>
@@ -395,7 +410,7 @@
 
       <div class="manualBox">
         <label for="manualModel">Aggiungi modello manuale</label>
-        <input id="manualModel" type="text" placeholder="Es: AirPods Pro 2, iPad Air, Apple Watch S9">
+        <input id="manualModel" type="text" placeholder="Es: Apple Watch Series 9, AirPods Pro 2, iPad Air">
 
         <div class="manualActions">
           <button class="secondary" id="addModel">Aggiungi modello</button>
@@ -458,10 +473,28 @@
     "iPhone 17e",
     "iPhone 17 Air",
     "iPhone 17 Pro",
-    "iPhone 17 Pro Max"
+    "iPhone 17 Pro Max",
+
+    "Apple Watch Series 7",
+    "Apple Watch Series 8",
+    "Apple Watch Series 9",
+    "Apple Watch Series 10",
+    "Apple Watch SE",
+    "Apple Watch Ultra",
+    "Apple Watch Ultra 2",
+
+    "AirPods",
+    "AirPods Pro",
+    "AirPods Pro 2",
+    "AirPods Max",
+
+    "iPad",
+    "iPad Air",
+    "iPad Pro",
+    "iPad mini"
   ];
 
-  const STORAGE_KEY = "tagliandini_modelli_manuali_v1";
+  const STORAGE_KEY = "tagliandini_modelli_manuali_v2";
 
   const $ = (id) => document.getElementById(id);
 
@@ -558,8 +591,10 @@
       .replace(" Plus", "<br>Plus")
       .replace(" mini", "<br>mini")
       .replace(" Air", "<br>Air")
-      .replace(" Apple Watch", "Apple<br>Watch")
-      .replace(" AirPods", "AirPods");
+      .replace("Apple Watch", "Apple<br>Watch")
+      .replace("AirPods Pro", "AirPods<br>Pro")
+      .replace("iPad Pro", "iPad<br>Pro")
+      .replace("iPad Air", "iPad<br>Air");
   }
 
   function autoFitModel(tagEl){
@@ -570,7 +605,7 @@
 
     modelEl.style.lineHeight = modelEl.innerHTML.includes("<br>") ? "0.95" : "1.02";
 
-    const sizes = ["31pt", "29pt", "27pt", "25pt", "24pt", "23pt", "22pt", "21pt", "20pt", "19pt", "18pt"];
+    const sizes = ["31pt", "29pt", "27pt", "25pt", "24pt", "23pt", "22pt", "21pt", "20pt", "19pt", "18pt", "17pt"];
 
     for (const s of sizes){
       modelEl.style.fontSize = s;
@@ -587,7 +622,7 @@
     const stateEl = tagEl.querySelector(".t-state");
     if (!stateEl) return;
 
-    const sizes = ["12pt", "11pt", "10pt", "9.5pt", "9pt"];
+    const sizes = ["12pt", "11pt", "10pt", "9.5pt", "9pt", "8.5pt"];
 
     for (const s of sizes){
       stateEl.style.fontSize = s;
@@ -601,7 +636,7 @@
     const priceEl = tagEl.querySelector(".t-price");
     if (!priceEl) return;
 
-    const sizes = ["31pt", "30pt", "29pt", "28pt", "27pt", "26pt"];
+    const sizes = ["31pt", "30pt", "29pt", "28pt", "27pt", "26pt", "25pt"];
 
     for (const s of sizes){
       priceEl.style.fontSize = s;
@@ -611,17 +646,18 @@
     }
   }
 
-  function makeTag({model, memory, state, price, showOffer}){
+  function makeTag({model, memory, watchSize, state, price, showOffer}){
     const tag = document.createElement("div");
     tag.className = showOffer ? "tag" : "tag no-offer";
 
-    const memoryHTML = memory === "-" ? "" : `<div class="t-memory">${escapeHTML(memory)}</div>`;
+    const finalMeasure = watchSize !== "-" ? watchSize : memory;
+    const measureHTML = finalMeasure === "-" ? "" : `<div class="t-memory">${escapeHTML(finalMeasure)}</div>`;
 
     tag.innerHTML = `
       <div class="t-offerta">OFFERTA</div>
       <div class="t-model">${formatModelHTML(model)}</div>
       <div class="t-state">${escapeHTML(state)}</div>
-      ${memoryHTML}
+      ${measureHTML}
       <div class="t-price">${euro(price)}</div>
 
       <img class="logo-compass" src="${COMPASS_SRC}" alt="COMPASS">
@@ -644,6 +680,7 @@
     const t = makeTag({
       model: $("model").value,
       memory: $("memory").value,
+      watchSize: $("watchSize").value,
       state: $("state").value,
       price,
       showOffer: $("showOffer").value === "yes"
