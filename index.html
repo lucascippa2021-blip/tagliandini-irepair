@@ -7,22 +7,17 @@
 
 <style>
   :root{
-    /* A4 */
     --a4-w: 210mm;
     --a4-h: 297mm;
 
-    /* POSIZIONE COLONNA (come nel PDF) */
     --col-left: 41.28mm;
     --col-top: 40.39mm;
 
-    /* DIMENSIONI COLONNA e TAG (come nel PDF) */
     --col-w: 87.49mm;
     --tag-h: 64.20mm;
 
-    /* Font come nel PDF */
     --font: Impact, Haettenschweiler, "Arial Black", sans-serif;
 
-    /* UI */
     --bg:#0b1220;
     --text:#e5e7eb;
     --muted:#94a3b8;
@@ -57,15 +52,35 @@
     top:16px;
     height: fit-content;
   }
-  .panel h1{ margin:0 0 6px 0; font-size:18px; }
-  .panel p{ margin:0 0 14px 0; font-size:13px; color: var(--muted); line-height:1.35; }
+
+  .panel h1{
+    margin:0 0 6px 0;
+    font-size:18px;
+  }
+
+  .panel p{
+    margin:0 0 14px 0;
+    font-size:13px;
+    color: var(--muted);
+    line-height:1.35;
+  }
 
   .grid{
     display:grid;
     grid-template-columns: 1fr 1fr;
     gap:10px;
   }
-  label{ display:block; font-size:12px; color:var(--muted); margin:0 0 6px 0; }
+
+  .full{
+    grid-column: 1 / -1;
+  }
+
+  label{
+    display:block;
+    font-size:12px;
+    color:var(--muted);
+    margin:0 0 6px 0;
+  }
 
   select, input{
     width:100%;
@@ -77,12 +92,26 @@
     outline:none;
   }
 
+  .manualBox{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid var(--border);
+  }
+
+  .manualActions{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+    margin-top:10px;
+  }
+
   .btns{
     display:grid;
     grid-template-columns: 1fr 1fr;
     gap:10px;
     margin-top:12px;
   }
+
   button{
     border:none;
     border-radius:14px;
@@ -91,9 +120,29 @@
     font-weight:800;
     letter-spacing:.2px;
   }
-  .primary{ background: linear-gradient(180deg, #22c55e, #16a34a); color:#052e16; }
-  .outline{ background: transparent; color: var(--text); border:1px solid var(--border); }
-  .danger{ background: rgba(239,68,68,.16); color:#fecaca; border:1px solid rgba(239,68,68,.35); }
+
+  .primary{
+    background: linear-gradient(180deg, #22c55e, #16a34a);
+    color:#052e16;
+  }
+
+  .outline{
+    background: transparent;
+    color: var(--text);
+    border:1px solid var(--border);
+  }
+
+  .danger{
+    background: rgba(239,68,68,.16);
+    color:#fecaca;
+    border:1px solid rgba(239,68,68,.35);
+  }
+
+  .secondary{
+    background: rgba(148,163,184,.18);
+    color: var(--text);
+    border:1px solid var(--border);
+  }
 
   .stage{
     background: rgba(255,255,255,.04);
@@ -113,7 +162,6 @@
     overflow: hidden;
   }
 
-  /* ====== COLONNA (come nel PDF) ====== */
   .stack{
     position:absolute;
     left: var(--col-left);
@@ -123,7 +171,6 @@
     background:#fff;
   }
 
-  /* ====== TAG (come nel PDF) ====== */
   .tag{
     position: relative;
     width: 100%;
@@ -134,9 +181,11 @@
     font-family: var(--font);
     color:#000;
   }
-  .tag:first-child{ border-top:none; }
 
-  /* Testi: posizioni/size dal PDF */
+  .tag:first-child{
+    border-top:none;
+  }
+
   .t-offerta{
     position:absolute;
     top: 2.245mm;
@@ -153,10 +202,10 @@
     top: 15.824mm;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 31pt; /* base, poi può ridursi via JS */
+    font-size: 31pt;
     line-height: 1.02;
     text-align:center;
-    width: calc(var(--col-w) - 28mm); /* lascia spazio ai loghi */
+    width: calc(var(--col-w) - 28mm);
     white-space: normal;
   }
 
@@ -168,6 +217,7 @@
     font-size: 12pt;
     letter-spacing: 0.8pt;
     white-space: nowrap;
+    text-transform: uppercase;
   }
 
   .t-memory{
@@ -188,7 +238,27 @@
     white-space: nowrap;
   }
 
-  /* Loghi: posizioni/dimensioni dal PDF */
+  /* Quando OFFERTA viene rimossa, il blocco testuale viene riequilibrato */
+  .tag.no-offer .t-offerta{
+    display:none;
+  }
+
+  .tag.no-offer .t-model{
+    top: 8.7mm;
+  }
+
+  .tag.no-offer .t-state{
+    top: 30.2mm;
+  }
+
+  .tag.no-offer .t-memory{
+    top: 37.2mm;
+  }
+
+  .tag.no-offer .t-price{
+    top: 47.0mm;
+  }
+
   .logo-compass{
     position:absolute;
     left: 61.9125mm;
@@ -211,19 +281,36 @@
     justify-content:center;
     overflow:hidden;
   }
+
   .logo-klarna{
     width: 92%;
     height: 92%;
     object-fit: contain;
   }
 
-  /* ====== STAMPA: SOLO A4 CON LA COLONNA NEL PUNTO ESATTO ====== */
   @media print{
     @page { size: A4; margin: 0; }
-    body{ background:#fff !important; }
-    .panel{ display:none !important; }
-    .app{ display:block; padding:0; max-width:none; }
-    .stage{ border:none; box-shadow:none; padding:0; background:transparent; }
+
+    body{
+      background:#fff !important;
+    }
+
+    .panel{
+      display:none !important;
+    }
+
+    .app{
+      display:block;
+      padding:0;
+      max-width:none;
+    }
+
+    .stage{
+      border:none;
+      box-shadow:none;
+      padding:0;
+      background:transparent;
+    }
 
     .paperPreview{
       width: var(--a4-w);
@@ -233,13 +320,24 @@
       box-shadow:none;
     }
 
-    .tag{ page-break-inside: avoid; }
+    .tag{
+      page-break-inside: avoid;
+    }
   }
 
   @media (max-width: 980px){
-    .app{ grid-template-columns: 1fr; }
-    .panel{ position:relative; top:auto; }
-    .paperPreview{ width:100%; }
+    .app{
+      grid-template-columns: 1fr;
+    }
+
+    .panel{
+      position:relative;
+      top:auto;
+    }
+
+    .paperPreview{
+      width:100%;
+    }
   }
 </style>
 </head>
@@ -247,10 +345,10 @@
 <body>
   <div class="app">
     <aside class="panel">
-      <h1>Generatore Tagliandini iPhone</h1>
+      <h1>Generatore Tagliandini</h1>
       <p>
-        Layout 1:1 con il PDF + fix automatico nomi lunghi (Pro Max / Plus / mini).
-        <br>Nel repo devono esserci <b>compass.png</b> e <b>klarna.png</b>.
+        Layout 1:1 con il PDF, con modelli manuali e opzione per mostrare/nascondere “OFFERTA”.
+        <br>Nel repository devono esserci <b>compass.png</b> e <b>klarna.png</b>.
       </p>
 
       <div class="grid">
@@ -267,6 +365,7 @@
             <option value="256GB">256GB</option>
             <option value="512GB">512GB</option>
             <option value="1TB">1TB</option>
+            <option value="-">Senza memoria</option>
           </select>
         </div>
 
@@ -274,14 +373,33 @@
           <label for="state">Stato</label>
           <select id="state">
             <option value="NUOVO">NUOVO</option>
+            <option value="PARI AL NUOVO">PARI AL NUOVO</option>
             <option value="USATO">USATO</option>
             <option value="RICONDIZIONATO">RICONDIZIONATO</option>
           </select>
         </div>
 
         <div>
+          <label for="showOffer">Scritta OFFERTA</label>
+          <select id="showOffer">
+            <option value="yes">Mostra OFFERTA</option>
+            <option value="no">Rimuovi OFFERTA</option>
+          </select>
+        </div>
+
+        <div class="full">
           <label for="price">Prezzo (€)</label>
           <input id="price" type="number" min="0" step="0.01" placeholder="Es: 149.99">
+        </div>
+      </div>
+
+      <div class="manualBox">
+        <label for="manualModel">Aggiungi modello manuale</label>
+        <input id="manualModel" type="text" placeholder="Es: AirPods Pro 2, iPad Air, Apple Watch S9">
+
+        <div class="manualActions">
+          <button class="secondary" id="addModel">Aggiungi modello</button>
+          <button class="danger" id="resetModels">Reset manuali</button>
         </div>
       </div>
 
@@ -300,22 +418,50 @@
   </div>
 
 <script>
-  // Loghi (devono stare nel repo con questi nomi)
   const COMPASS_SRC = "./compass.png";
   const KLARNA_SRC  = "./klarna.png";
 
-  // Modelli dal 2019 in poi (inclusi 16e + serie 17)
-  const IPHONES_2019_PLUS = [
-    "iPhone 11","iPhone 11 Pro","iPhone 11 Pro Max",
+  const DEFAULT_MODELS = [
+    "iPhone 11",
+    "iPhone 11 Pro",
+    "iPhone 11 Pro Max",
+
     "iPhone SE (2ª gen)",
-    "iPhone 12 mini","iPhone 12","iPhone 12 Pro","iPhone 12 Pro Max",
-    "iPhone 13 mini","iPhone 13","iPhone 13 Pro","iPhone 13 Pro Max",
+    "iPhone 12 mini",
+    "iPhone 12",
+    "iPhone 12 Pro",
+    "iPhone 12 Pro Max",
+
+    "iPhone 13 mini",
+    "iPhone 13",
+    "iPhone 13 Pro",
+    "iPhone 13 Pro Max",
+
     "iPhone SE (3ª gen)",
-    "iPhone 14","iPhone 14 Plus","iPhone 14 Pro","iPhone 14 Pro Max",
-    "iPhone 15","iPhone 15 Plus","iPhone 15 Pro","iPhone 15 Pro Max",
-    "iPhone 16","iPhone 16e","iPhone 16 Plus","iPhone 16 Pro","iPhone 16 Pro Max",
-    "iPhone 17","iPhone 17 Air","iPhone 17 Pro","iPhone 17 Pro Max"
+    "iPhone 14",
+    "iPhone 14 Plus",
+    "iPhone 14 Pro",
+    "iPhone 14 Pro Max",
+
+    "iPhone 15",
+    "iPhone 15 Plus",
+    "iPhone 15 Pro",
+    "iPhone 15 Pro Max",
+
+    "iPhone 16",
+    "iPhone 16e",
+    "iPhone 16 Plus",
+    "iPhone 16 Pro",
+    "iPhone 16 Pro Max",
+
+    "iPhone 17",
+    "iPhone 17e",
+    "iPhone 17 Air",
+    "iPhone 17 Pro",
+    "iPhone 17 Pro Max"
   ];
+
+  const STORAGE_KEY = "tagliandini_modelli_manuali_v1";
 
   const $ = (id) => document.getElementById(id);
 
@@ -325,64 +471,157 @@
     return n.toFixed(2).replace(".", ",");
   }
 
-  function initModels(){
+  function escapeHTML(str){
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function getManualModels(){
+    try{
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    }catch(e){
+      return [];
+    }
+  }
+
+  function saveManualModels(models){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(models));
+  }
+
+  function getAllModels(){
+    const manual = getManualModels();
+    return [...DEFAULT_MODELS, ...manual];
+  }
+
+  function initModels(selectedValue = null){
     const sel = $("model");
     sel.innerHTML = "";
-    IPHONES_2019_PLUS.forEach(m=>{
-      const o=document.createElement("option");
-      o.value=m; o.textContent=m;
+
+    getAllModels().forEach(m=>{
+      const o = document.createElement("option");
+      o.value = m;
+      o.textContent = m;
       sel.appendChild(o);
     });
-  }
 
-  /* ========= FIX NOMI LUNGHI =========
-     - Pro Max: "iPhone 11 Pro Max" -> "iPhone 11 Pro<br>Max" (più compatto)
-     - Plus / mini: vanno a capo
-  */
-  function formatModelHTML(model){
-    if (model.includes(" Pro Max")) {
-      return model.replace(" Pro Max", " Pro<br>Max");
+    if (selectedValue) {
+      sel.value = selectedValue;
     }
-    return model
-      .replace(" Plus", "<br>Plus")
-      .replace(" mini", "<br>mini");
   }
 
-  /* ========= AUTOFIT REALE =========
-     Riduce finché il modello NON invade lo stato (misurato con getBoundingClientRect).
-     Eseguito DOPO l'append => misure affidabili.
-  */
+  function addManualModel(){
+    const input = $("manualModel");
+    const value = input.value.trim();
+
+    if (!value){
+      alert("Scrivi il nome del modello da aggiungere.");
+      return;
+    }
+
+    const allModels = getAllModels();
+
+    if (allModels.some(m => m.toLowerCase() === value.toLowerCase())){
+      alert("Questo modello è già presente.");
+      input.value = "";
+      return;
+    }
+
+    const manual = getManualModels();
+    manual.push(value);
+    saveManualModels(manual);
+
+    initModels(value);
+    input.value = "";
+  }
+
+  function resetManualModels(){
+    if (!confirm("Vuoi eliminare tutti i modelli aggiunti manualmente?")){
+      return;
+    }
+
+    localStorage.removeItem(STORAGE_KEY);
+    initModels();
+  }
+
+  function formatModelHTML(model){
+    let safe = escapeHTML(model);
+
+    if (safe.includes(" Pro Max")) {
+      return safe.replace(" Pro Max", " Pro<br>Max");
+    }
+
+    return safe
+      .replace(" Plus", "<br>Plus")
+      .replace(" mini", "<br>mini")
+      .replace(" Air", "<br>Air")
+      .replace(" Apple Watch", "Apple<br>Watch")
+      .replace(" AirPods", "AirPods");
+  }
+
   function autoFitModel(tagEl){
     const modelEl = tagEl.querySelector(".t-model");
     const stateEl = tagEl.querySelector(".t-state");
+
     if (!modelEl || !stateEl) return;
 
-    // Se su due righe, stringo leggermente line-height
     modelEl.style.lineHeight = modelEl.innerHTML.includes("<br>") ? "0.95" : "1.02";
 
-    const sizes = ["31pt","29pt","27pt","25pt","24pt","23pt","22pt","21pt"];
+    const sizes = ["31pt", "29pt", "27pt", "25pt", "24pt", "23pt", "22pt", "21pt", "20pt", "19pt", "18pt"];
 
     for (const s of sizes){
       modelEl.style.fontSize = s;
-      void modelEl.offsetHeight; // force reflow
+      void modelEl.offsetHeight;
 
       const m = modelEl.getBoundingClientRect();
       const st = stateEl.getBoundingClientRect();
 
-      // Respiro minimo (2px)
       if (m.bottom <= st.top - 2) break;
     }
   }
 
-  function makeTag({model, memory, state, price}){
+  function autoFitState(tagEl){
+    const stateEl = tagEl.querySelector(".t-state");
+    if (!stateEl) return;
+
+    const sizes = ["12pt", "11pt", "10pt", "9.5pt", "9pt"];
+
+    for (const s of sizes){
+      stateEl.style.fontSize = s;
+      void stateEl.offsetWidth;
+
+      if (stateEl.scrollWidth <= stateEl.clientWidth + 2) break;
+    }
+  }
+
+  function autoFitPrice(tagEl){
+    const priceEl = tagEl.querySelector(".t-price");
+    if (!priceEl) return;
+
+    const sizes = ["31pt", "30pt", "29pt", "28pt", "27pt", "26pt"];
+
+    for (const s of sizes){
+      priceEl.style.fontSize = s;
+      void priceEl.offsetWidth;
+
+      if (priceEl.scrollWidth <= priceEl.clientWidth + 2) break;
+    }
+  }
+
+  function makeTag({model, memory, state, price, showOffer}){
     const tag = document.createElement("div");
-    tag.className = "tag";
+    tag.className = showOffer ? "tag" : "tag no-offer";
+
+    const memoryHTML = memory === "-" ? "" : `<div class="t-memory">${escapeHTML(memory)}</div>`;
 
     tag.innerHTML = `
       <div class="t-offerta">OFFERTA</div>
       <div class="t-model">${formatModelHTML(model)}</div>
-      <div class="t-state">${state}</div>
-      <div class="t-memory">${memory}</div>
+      <div class="t-state">${escapeHTML(state)}</div>
+      ${memoryHTML}
       <div class="t-price">${euro(price)}</div>
 
       <img class="logo-compass" src="${COMPASS_SRC}" alt="COMPASS">
@@ -396,6 +635,7 @@
 
   function addTag(){
     const price = $("price").value;
+
     if (price === "" || !isFinite(Number(price)) || Number(price) < 0){
       alert("Inserisci un prezzo valido (es. 149.99).");
       return;
@@ -405,26 +645,34 @@
       model: $("model").value,
       memory: $("memory").value,
       state: $("state").value,
-      price
+      price,
+      showOffer: $("showOffer").value === "yes"
     });
 
     $("stack").appendChild(t);
 
-    // Fit DOPO append => garantito
     autoFitModel(t);
+    autoFitState(t);
+    autoFitPrice(t);
   }
 
   function clearAll(){
     $("stack").innerHTML = "";
   }
 
-  // Init
   initModels();
 
-  // Eventi
   $("add").addEventListener("click", addTag);
   $("print").addEventListener("click", ()=> window.print());
   $("clear").addEventListener("click", clearAll);
+  $("addModel").addEventListener("click", addManualModel);
+  $("resetModels").addEventListener("click", resetManualModels);
+
+  $("manualModel").addEventListener("keydown", function(e){
+    if (e.key === "Enter"){
+      addManualModel();
+    }
+  });
 </script>
 </body>
 </html>
